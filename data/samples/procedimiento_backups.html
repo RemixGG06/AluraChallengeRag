@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="utf-8"><title>Procedimiento de Backups</title></head>
+<body>
+<h1>Procedimiento de Backups — Operaciones</h1>
+<h2>Política general</h2>
+<p>Los backups se rigen por la regla <strong>3-2-1</strong>: 3 copias de los
+datos, en 2 medios distintos, con 1 copia fuera del sitio (nube).</p>
+<h2>Programación</h2>
+<ul>
+  <li><strong>Incremental:</strong> lunes a sábado a las 21:00.</li>
+  <li><strong>Completo:</strong> domingos a las 02:00.</li>
+  <li><strong>Retención:</strong> 14 restore points diarios, 4 semanales,
+  12 mensuales.</li>
+</ul>
+<h2>Restauración de un archivo</h2>
+<ol>
+  <li>Abrir la consola Veeam en <code>srv-backup01</code> (10.10.20.20).</li>
+  <li>Seleccionar <em>Restore &gt; File Level Restore</em>.</li>
+  <li>Elegir el restore point y el servidor origen (habitualmente
+  <code>srv-files01</code>).</li>
+  <li>Copiar el archivo restaurado a la ruta original o a
+  <code>RESTAURADOS</code> en la raíz del recurso compartido.</li>
+  <li>Notificar al usuario y registrar el ticket.</li>
+</ol>
+<h2>Verificación diaria</h2>
+<p>Cada mañana el analista de turno revisa el reporte de jobs en la consola.
+Un job en estado <em>Warning</em> dos días seguidos se escala al
+Administrador de Sistemas (extensión 4415).</p>
+</body>
+</html>

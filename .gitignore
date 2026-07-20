@@ -1,0 +1,32 @@
+# --- Secretos (NUNCA versionar) ---
+.env
+
+# --- Entornos virtuales ---
+.venv/
+venv/
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+
+# --- React / Node ---
+node_modules/
+frontend/dist/
+frontend/.vite/
+
+# --- Datos generados en runtime ---
+data/faiss_index/*
+!data/faiss_index/.gitkeep
+data/raw/*
+!data/raw/.gitkeep
+
+# --- Logs de runtime ---
+*.log
+
+# --- SO / IDE ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

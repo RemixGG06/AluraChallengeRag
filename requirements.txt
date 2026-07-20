@@ -1,0 +1,40 @@
+# ============================================================
+# MentorTI Nexus - Dependencias (versiones fijadas)
+# Python 3.10+
+# ============================================================
+
+# --- Web / API ---
+fastapi==0.115.14
+uvicorn[standard]==0.37.0
+python-multipart==0.0.20
+
+# --- LangChain 1.x (orquestación del agente) ---
+langchain==1.3.14
+langchain-core==1.4.9
+langchain-classic==1.0.8        # API clásica de agentes sobre LangChain 1.x
+langchain-community==0.4.2
+langchain-openai==1.3.5         # OpenRouter usa endpoint compatible OpenAI
+langchain-text-splitters==1.1.2
+
+# --- Vector Store (Fase 1: local) ---
+faiss-cpu==1.14.3
+
+# --- Embeddings remotos vía HuggingFace Inference API ---
+# Sin torch ni sentence-transformers (~2.5GB menos)
+huggingface_hub==1.24.0
+
+# --- Document Loaders (multiformato) ---
+pypdf==6.14.2                   # PDF
+python-docx==1.2.0              # Word (.docx)
+openpyxl==3.1.5                 # Excel (.xlsx)
+beautifulsoup4==4.15.0          # HTML
+lxml==6.1.1                     # Parser HTML/XML
+
+# --- Fallback web (búsqueda sin API key) ---
+duckduckgo-search==8.1.1
+
+# --- Configuración ---
+python-dotenv==1.2.2
+
+# --- Testing ---
+pytest==9.1.1
