@@ -13,10 +13,12 @@ services:
         sync: false
       - key: CORS_ORIGINS
         value: https://mentorti-nexus.vercel.app
+      - key: OPENROUTER_BASE_URL
+        value: https://api.groq.com/openai/v1
       - key: LLM_MODEL
-        value: google/gemma-4-26b-a4b-it:free
+        value: llama-3.3-70b-versatile
       - key: FALLBACK_LLM_MODELS
-        value: nvidia/nemotron-3-nano-30b-a3b:free,tencent/hy3:free
+        value: mixtral-8x7b-32768,gemma2-9b-it
       - key: LLM_TEMPERATURE
         value: "0.2"
       - key: FAISS_INDEX_PATH
