@@ -109,6 +109,27 @@ class TestAsk:
         assert result["source_type"] == "error"
         assert "inténtalo de nuevo" in result["answer"]
 
+    def test_bad_request_reintenta_y_mensaje_especifico(self, monkeypatch):
+        from openai import BadRequestError
+
+        llamadas = {"n": 0}
+
+        def _factory(**kwargs):
+            llamadas["n"] += 1
+            if llamadas["n"] == 1:
+                raise BadRequestError(
+                    "tool_use_failed",
+                    response=None,
+                    body={"error": {"message": "Failed to call a function"}},
+                )
+            return _FakeAgent(), SourceCollector()
+
+        monkeypatch.setattr("backend.llm.agent.create_mentor_agent", _factory)
+        result = ask("pregunta")
+
+        assert result["source_type"] != "error"
+        assert llamadas["n"] == 2
+
     def test_reintenta_con_modelo_de_respaldo_ante_429(self, monkeypatch):
         llamadas = {"n": 0, "modelos": []}
 
