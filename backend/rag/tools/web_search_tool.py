@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from urllib.parse import urlparse
 
-from duckduckgo_search import DDGS
+from ddgs import DDGS
 from langchain_core.tools import tool
 
 # Dominios técnicos confiables (documentación oficial y comunidades validadas)

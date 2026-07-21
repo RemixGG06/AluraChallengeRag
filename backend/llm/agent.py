@@ -11,6 +11,7 @@ SourceCollector inyectado en las tools: determinista y testeable.
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 
 from langchain.agents import create_agent
@@ -20,6 +21,8 @@ from backend.llm.llm import get_llm
 from backend.rag.tools.retriever_tool import search_knowledge_base
 from backend.rag.tools.web_search_tool import search_web
 from backend.rag.vectorstore import list_indexed_sources
+
+logger = logging.getLogger(__name__)
 
 SYSTEM_PROMPT = """Eres MentorTI Nexus, un mentor técnico 24/7 para practicantes del área de TI de la empresa.
 Tu misión es acelerar el onboarding respondiendo dudas técnicas con precisión y pedagogía.
@@ -180,6 +183,9 @@ def ask(
             # Resiliencia: cualquier fallo transitorio del proveedor (429,
             # errores de formato del modelo, timeouts) reintenta con el
             # siguiente modelo de la cadena.
+            logger.exception(
+                "Fallo del modelo %s: %s", model or settings.llm_model, exc
+            )
             if model != models_to_try[-1]:
                 continue
             return {

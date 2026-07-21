@@ -4,7 +4,7 @@ services:
     runtime: python
     region: oregon
     plan: free
-    buildCommand: pip install -r requirements.txt && cd frontend && npm ci && npm run build
+    buildCommand: pip install -r requirements.txt && python -m backend.scripts.ingest_samples && cd frontend && npm ci && npm run build
     startCommand: uvicorn backend.api.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: OPENROUTER_API_KEY
@@ -18,7 +18,7 @@ services:
       - key: LLM_MODEL
         value: llama-3.3-70b-versatile
       - key: FALLBACK_LLM_MODELS
-        value: mixtral-8x7b-32768,gemma2-9b-it
+        value: llama-3.1-8b-instant
       - key: LLM_TEMPERATURE
         value: "0.2"
       - key: FAISS_INDEX_PATH

@@ -7,6 +7,7 @@ from pathlib import Path
 from fastapi import APIRouter, File, Form, UploadFile
 from pydantic import BaseModel
 
+from backend.common.cache import response_cache
 from backend.common.upload import UploadedFile, save_uploaded_file
 from backend.config.settings import settings
 from backend.rag.vectorstore import ingest_file, list_indexed_sources
@@ -61,6 +62,8 @@ async def upload_documents(
                     error=str(exc),
                 )
             )
+    # Invalidar caché para que las nuevas preguntas usen el índice actualizado
+    response_cache.clear()
     return IngestResponse(results=results)
 
 

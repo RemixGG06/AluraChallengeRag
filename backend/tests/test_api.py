@@ -142,6 +142,42 @@ class TestChat:
         assert body["model"] == "modelo-test"
         assert body["sources"][0]["source"] == "manual_red.md"
 
+    def test_chat_cachea_respuestas_repetidas(self, monkeypatch):
+        from backend.common.cache import response_cache
+
+        response_cache.clear()
+        calls = {"count": 0}
+
+        def _fake_ask(question, chat_history=None):
+            calls["count"] += 1
+            return {
+                "answer": f"Respuesta #{calls['count']}",
+                "source_type": "internal",
+                "sources": [],
+                "model": "modelo-test",
+            }
+
+        monkeypatch.setattr("backend.llm.agent.ask", _fake_ask)
+
+        r1 = client.post(
+            "/api/chat",
+            json={"question": "hola", "history": [], "lang": "es"},
+        )
+        assert r1.status_code == 200
+        assert r1.json()["answer"] == "Respuesta #1"
+        assert calls["count"] == 1
+
+        # La misma pregunta (mayúsculas) debe venir de caché, no llamar de nuevo
+        r2 = client.post(
+            "/api/chat",
+            json={"question": "HOLA", "history": [], "lang": "es"},
+        )
+        assert r2.status_code == 200
+        assert r2.json()["answer"] == "Respuesta #1"
+        assert calls["count"] == 1
+
+        response_cache.clear()
+
     def test_chat_valida_idioma(self):
         response = client.post(
             "/api/chat",

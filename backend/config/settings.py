@@ -30,12 +30,12 @@ class Settings:
     )
     openrouter_base_url: str = field(
         default_factory=lambda: os.getenv(
-            "OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1"
+            "OPENROUTER_BASE_URL", "https://api.groq.com/openai/v1"
         )
     )
     llm_model: str = field(
         default_factory=lambda: os.getenv(
-            "LLM_MODEL", "google/gemma-4-26b-a4b-it:free"
+            "LLM_MODEL", "llama-3.3-70b-versatile"
         )
     )
     llm_temperature: float = field(
@@ -47,7 +47,7 @@ class Settings:
             m.strip()
             for m in os.getenv(
                 "FALLBACK_LLM_MODELS",
-                "nvidia/nemotron-3-nano-30b-a3b:free,tencent/hy3:free",
+                "llama-3.1-8b-instant",
             ).split(",")
             if m.strip()
         ]

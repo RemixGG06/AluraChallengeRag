@@ -6,9 +6,10 @@ MentorTI Nexus es un asistente inteligente de capacitación para el área de TI 
 
 - `backend/`
   - `backend/api/`: API REST construida con FastAPI.
-  - `backend/llm/`: Lógica del agente conversacional basada en LangChain y un modelo compatible con OpenRouter.
+  - `backend/llm/`: Lógica del agente conversacional basada en LangChain y un modelo compatible con Groq.
   - `backend/rag/`: Vector store FAISS para búsquedas semánticas de documentos internos y herramientas de fallback web.
   - `backend/config/`: Configuración centralizada y carga de variables de entorno.
+  - `backend/common/cache.py`: Caché en memoria con TTL para evitar llamadas repetidas al LLM (se invalida automáticamente al subir documentos).
 - `frontend/`
   - Aplicación web React con Vite que consume la API de chat y ofrece vistas para chat, administración y acerca de.
 - `data/`
@@ -23,8 +24,9 @@ MentorTI Nexus es un asistente inteligente de capacitación para el área de TI 
   - LangChain 1.x
   - FAISS
   - HuggingFace Inference API
-  - DuckDuckGo Search para fallback web
+  - DDGS (DuckDuckGo) para fallback web
   - python-dotenv
+  - Caché en memoria con TTL (respuestas repetidas no llaman al LLM)
 - Frontend:
   - React
   - Vite
@@ -63,6 +65,13 @@ OPENROUTER_API_KEY=tu_api_key_aqui
 HUGGINGFACE_API_KEY=tu_api_key_aqui
 ```
 
+Opcionalmente puedes configurar el caché de respuestas del chat:
+
+```env
+CACHE_TTL_SECONDS=600       # Tiempo de vida de cada respuesta en caché (default: 600)
+CACHE_MAXSIZE=500           # Máximo de entradas en caché (default: 500)
+```
+
 ### 3. Iniciar el backend
 
 ```powershell
@@ -95,20 +104,61 @@ Abre tu navegador en:
 ## Ejemplos de respuestas generadas por el agente
 
 - Respuesta de conocimiento interno:
-  - “Según el manual interno de VPN, primero debes validar el certificado, luego configurar el cliente con la dirección del gateway y finalmente autenticarte con usuario y contraseña.
-  - Manual citado: `manual_vpn_red.md`.”
+  - "Según el manual interno de VPN, primero debes validar el certificado, luego configurar el cliente con la dirección del gateway y finalmente autenticarte con usuario y contraseña.
+  - Manual citado: `manual_vpn_red.md`."
 
 - Respuesta de fallback web:
-  - “No encontré un documento interno con la respuesta completa, pero según fuentes confiables en internet, debes revisar la configuración DNS del adaptador de red y confirmar que el servidor esté accesible desde la subred local.”
+  - "No encontré un documento interno con la respuesta completa, pero según fuentes confiables en internet, debes revisar la configuración DNS del adaptador de red y confirmar que el servidor esté accesible desde la subred local."
 
 - Respuesta sobre documentos disponibles:
-  - “Estos son los documentos indexados en la base de conocimiento interna:
+  - "Estos son los documentos indexados en la base de conocimiento interna:
     - `manual_vpn_red.md` (Redes, 12 fragmentos)
     - `contactos_soporte.csv` (Soporte, 5 fragmentos)
-    - `procedimiento_backups.html` (Operaciones, 8 fragmentos)”
+    - `procedimiento_backups.html` (Operaciones, 8 fragmentos)"
+
+## Despliegue
+
+### Backend (Render)
+
+Revisa `render.yaml` para la configuración de servicio web:
+
+- **BuildCommand**: `pip install -r requirements.txt && python -m backend.scripts.ingest_samples && cd frontend && npm ci && npm run build`
+  - Ingesta los documentos de `data/samples/` en el índice FAISS durante el build.
+- **Variables de entorno obligatorias** (definir en el dashboard de Render):
+  - `OPENROUTER_API_KEY` — API key de Groq.
+  - `HUGGINGFACE_API_KEY` — API key de HuggingFace (necesaria para los embeddings).
+- **Modelos** (vía Groq):
+  - Primario: `llama-3.3-70b-versatile`
+  - Respaldo: `llama-3.1-8b-instant`
+
+### Frontend (Vercel)
+
+`frontend/vercel.json` reescribe las rutas `/api/*` hacia el backend en Render. Configura la variable `VITE_API_URL` solo si usas un dominio distinto (por defecto usa la rewrite de Vercel).
+
+## Caché de respuestas
+
+El endpoint `/api/chat` incorpora un caché en memoria (`backend/common/cache.py`):
+
+- **Clave**: pregunta normalizada (minúsculas, sin espacios extra) + idioma.
+- **TTL**: configurable vía `CACHE_TTL_SECONDS` (default: 600 segundos / 10 min).
+- **Máximo de entradas**: configurable vía `CACHE_MAXSIZE` (default: 500).
+- **Invalidación**: al subir documentos nuevos mediante `/api/admin/upload` se vacía la caché automáticamente.
+- Si la misma pregunta (en el mismo idioma) se repite antes de que expire la caché, se devuelve la respuesta anterior sin llamar al LLM. Esto reduce el consumo de cuota en Groq free.
+
+## Configuración de modelos
+
+Los modelos se configuran vía variables de entorno:
+
+| Variable | Default | Descripción |
+|---|---|---|
+| `LLM_MODEL` | `llama-3.3-70b-versatile` | Modelo principal (Groq) |
+| `FALLBACK_LLM_MODELS` | `llama-3.1-8b-instant` | Modelos de respaldo (separados por coma) |
+| `LLM_TEMPERATURE` | `0.2` | Temperatura del modelo |
+| `OPENROUTER_BASE_URL` | `https://api.groq.com/openai/v1` | Endpoint compatible OpenAI |
 
 ## Notas adicionales
 
 - Nunca subas archivos con credenciales reales al repositorio.
 - Usa `.env.example` como plantilla para crear tu `.env` local.
 - El agente está diseñado para priorizar primero la base de conocimiento interna y solo recurrir a la web si la información interna no es suficiente.
+- En el plan free de Render los archivos subidos vía `/api/admin/upload` se pierden al redeployar (no hay disco persistente). El índice construido durante el build es la fuente inicial; para persistir subidas se necesita un plan de pago con Persistent Disk.
