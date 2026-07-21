@@ -44,7 +44,16 @@ class RemoteMultilingualEmbeddings(Embeddings):
 
     def embed_query(self, text: str) -> list[float]:
         response = self._client.feature_extraction(text)
-        return _l2_normalize(response[0] if response and isinstance(response[0], list) else response)
+        # feature_extraction devuelve np.ndarray. Para un solo texto la forma
+        # suele ser (1, dim), aunque en ocasiones puede ser (dim,). Tomamos la
+        # primera fila cuando hay 2 dimensiones; de lo contrario usamos el
+        # vector directamente. Se evita `response and ...` porque numpy no
+        # permite evaluar arrays en contexto booleano.
+        if hasattr(response, "ndim") and response.ndim == 2:
+            vec = response[0]
+        else:
+            vec = response
+        return _l2_normalize(list(vec))
 
 
 @lru_cache(maxsize=1)
