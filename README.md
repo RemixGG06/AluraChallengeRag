@@ -2,6 +2,9 @@
 
 MentorTI Nexus es un asistente inteligente de capacitación para el área de TI que combina un backend FastAPI con un frontend React/Vite y un agente RAG (Retrieval-Augmented Generation). El proyecto ofrece respuestas técnicas a preguntas sobre redes, VPN, procedimientos, documentación interna y más.
 
+# Sistema Funcionando
+![image alt] (https://github.com/RemixGG06/AluraChallengeRag/blob/e357b388abbfeb9359f4747aa89a191db627e955/Sistema%20Funcionando.jpeg)
+
 ## Arquitectura de la solución
 
 - `backend/`
